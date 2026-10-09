@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Kytarový Zpěvník</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --chord-color: #ffb300;
+            --accent-color: #ff5722;
+            --border-color: #333333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        #role-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 20px;
+        }
+
+        .btn {
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 250px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        #app-container {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .master-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .master-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                max-height: 400px;
+            }
+        }
+
+        .sidebar {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: calc(100vh - 70px);
+            position: sticky;
+            top: 20px;
+        }
+
+        .search-box {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-color);
+        }
+
+        .song-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .song-item {
+            padding: 10px 12px;
+            background-color: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .song-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .song-item.active {
+            background-color: rgba(255, 87, 34, 0.15);
+            border-left-color: var(--accent-color);
+        }
+
+        .song-title {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .song-artist {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .main-content {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 30px;
+            min-height: calc(100vh - 100px);
+        }
+
+        .song-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .current-title {
+            font-size: 2rem;
+            margin: 0 0 5px 0;
+            color: #fff;
+        }
+
+        .current-artist {
+            font-size: 1.2rem;
+            margin: 0;
+            color: #aaa;
+        }
+
+        .song-body {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .chord {
+            color: var(--chord-color);
+            font-weight: bold;
+        }
+
+        .slave-header {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--surface-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .status-badge {
+            background-color: #2e7d32;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="role-selection">
+        <h1 style="margin-bottom: 10px; text-align: center;">🔥 Kytarový Zpěvník</h1>
+        <p style="color: #888; margin-bottom: 30px;">Vyber si svou roli u ohně:</p>
+        <button class="btn" onclick="initApp('master')">👑 Kapelník (Master)</button>
+        <button class="btn" onclick="initApp('slave')">🎸 Hráč (Slave)</button>
+    </div>
+
+    <div id="app-container">
+        <div id="slave-top-bar" class="slave-header">
+            <span>Režim: Sledování kapelníka</span>
+            <span class="status-badge">LIVE SYNCHRONIZACE</span>
+        </div>
+
+        <div id="layout-wrapper">
+            <aside class="sidebar" id="sidebar-panel">
+                <input type="text" id="search-input" class="search-box" placeholder="Hledat píseň nebo autora...">
+                <div class="song-list" id="songs-list-box">
+                    <div style="text-align: center; color: #888; padding: 20px;">Načítám zpěvník z cloudu...</div>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <div id="song-detail-view">
+                    <div class="song-header">
+                        <h2 class="current-title" id="render-title">Vyberte písničku</h2>
+                        <p class="current-artist" id="render-artist"></p>
+                    </div>
+                    <pre class="song-body" id="render-body">Zde se zobrazí text písně...</pre>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getDatabase, ref, onValue, set } from "https://gstatic.com";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXLx4xVWmnpglN9wKOJ89FpfzD8W_jgnM",
+            authDomain: "://firebaseapp.com",
+            databaseURL: "https://firebaseio.com",
+            projectId: "zpevnik-slavo",
+            storageBucket: "zpevnik-slavo.firebasestorage.app",
+            messagingSenderId: "509075729327",
+            appId: "1:509075729327:web:a51779938b683849881d5a",
+            measurementId: "G-7SS9Q5W6DF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let allSongs = [];
+        let currentRole = '';
+
+        window.initApp = function(role) {
+            currentRole = role;
+            document.getElementById('role-selection').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+
+            const wrapper = document.getElementById('layout-wrapper');
+            const sidebar = document.getElementById('sidebar-panel');
+            const slaveBar = document.getElementById('slave-top-bar');
+
+            if (role === 'master') {
+                wrapper.className = 'master-layout';
+                sidebar.style.display = 'flex';
+                slaveBar.style.display = 'none';
+                loadAllSongs();
+                listenToCurrentSong();
+            } else {
+                wrapper.className = '';
+                sidebar.style.display = 'none';
+                slaveBar.style.display = 'flex';
+                listenToCurrentSong();
+            }
+        }
+
+        function loadAllSongs() {
+            const dbRef = ref(db, '/');
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                let rawSongs = [];
+                // Ošetření různých struktur po importu
+                if (Array.isArray(data)) {
+                    rawSongs = data;
+                } else if (typeof data === 'object') {
+                    if (data.songs) {
+                        rawSongs = Array.isArray(data.songs) ? data.songs : Object.values(data.songs);
+                    } else {
+                        rawSongs = Object.keys(data)
+                            .filter(key => key !== 'currentSong')
+                            .map(key => data[key]);
+                    }
+                }
+
+                allSongs = rawSongs.filter(s => s && s.title);
+                renderSongList(allSongs);
+                setupSearch();
+            });
+        }
+
+        function renderSongList(songsToRender, activeTitle = null) {
+            const listBox = document.getElementById('songs-list-box');
+            listBox.innerHTML = '';
+
+            if (songsToRender.length === 0) {
+                listBox.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">Žádná píseň nenalezena</div>';
+                return;
+            }
+
+            songsToRender.forEach((song) => {
+                const item = document.createElement('div');
+                const isActive = activeTitle === song.title;
+                item.className = `song-item ${isActive ? 'active' : ''}`;
+                item.innerHTML = `
